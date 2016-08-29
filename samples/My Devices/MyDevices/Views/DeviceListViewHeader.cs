@@ -16,7 +16,7 @@ namespace MyDevices.Views
 			var lastHeard = new Label { 
 				VerticalOptions = LayoutOptions.Center, 
 				HorizontalTextAlignment = TextAlignment.End,
-				Text = "Last Head On",
+				Text = "Last Heard On",
                 FontSize = 18
             };
 
