@@ -3,14 +3,14 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using static System.String;
-using static System.Diagnostics.Debug;
-
-using ModernHttpClient;
-using static Newtonsoft.Json.JsonConvert;
 
 using Particle.Models;
 using Particle.Helpers;
+
+using static System.String;
+using static System.Diagnostics.Debug;
+
+using static Newtonsoft.Json.JsonConvert;
 
 namespace Particle
 {
@@ -86,17 +86,13 @@ namespace Particle
 		{
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
-				{
-					client.Timeout = TimeSpan.FromSeconds(3);
-					var response = await client.GetAsync(
-						DEVICE_URI_ENDPOINT + Id + "/" + variableName + "?access_token=" + ParticleCloud.AccessToken.Token);
-					var particleArgs = DeserializeObject<ParticleVariableResponse>(await response.Content.ReadAsStringAsync());
+				ParticleCloud.client.Timeout = TimeSpan.FromSeconds(3);
+				var response = await ParticleCloud.client.GetAsync(
+					DEVICE_URI_ENDPOINT + Id + "/" + variableName + "?access_token=" + ParticleCloud.AccessToken.Token);
+				var particleArgs = DeserializeObject<ParticleVariableResponse>(await response.Content.ReadAsStringAsync());
 
-					LastApp = particleArgs?.Core?.LastApp;
-					return particleArgs ?? null;
-				}
-
+				LastApp = particleArgs?.Core?.LastApp;
+				return particleArgs ?? null;
 			}
 			catch (Exception e)
 			{
@@ -120,23 +116,19 @@ namespace Particle
 
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
+				var response = await ParticleCloud.client.PostAsync(
+					DEVICE_URI_ENDPOINT + Id + "/" + functionName + "?access_token=" + ParticleCloud.AccessToken.Token,
+					requestContent);
+				var responseText = await response.Content.ReadAsStringAsync();
+				var particleResponse = DeserializeObject<ParticleFunctionResponse>(responseText);
+
+				if (IsNullOrEmpty(particleResponse.Id))
 				{
-					var response = await client.PostAsync(
-						DEVICE_URI_ENDPOINT + Id + "/" + functionName + "?access_token=" + ParticleCloud.AccessToken.Token,
-						requestContent);
-					var responseText = await response.Content.ReadAsStringAsync();
-					var particleResponse = DeserializeObject<ParticleFunctionResponse>(responseText);
-
-					if (IsNullOrEmpty(particleResponse.Id))
-					{
-						var error = DeserializeObject<ParticleErrorResponse>(responseText);
-						return error.Error;
-					}
-
-					return particleResponse?.Value.ToString() ?? "-1";
+					var error = DeserializeObject<ParticleErrorResponse>(responseText);
+					return error.Error;
 				}
 
+				return particleResponse?.Value.ToString() ?? "-1";
 			}
 			catch (Exception e)
 			{
@@ -177,18 +169,15 @@ namespace Particle
 
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
-				{
-					var response = await client.PutAsync(
-						DEVICE_URI_ENDPOINT + Id + "?access_token=" + ParticleCloud.AccessToken.Token,
-						requestContent);
-					var particleArgs = DeserializeObject<Dictionary<string, string>>(await response.Content.ReadAsStringAsync());
+				var response = await ParticleCloud.client.PutAsync(
+					DEVICE_URI_ENDPOINT + Id + "?access_token=" + ParticleCloud.AccessToken.Token,
+					requestContent);
+				var particleArgs = DeserializeObject<Dictionary<string, string>>(await response.Content.ReadAsStringAsync());
 
-					if (name == particleArgs["name"])
-					{
-						await RefreshAsync();
-						return true;
-					}
+				if (name == particleArgs["name"])
+				{
+					await RefreshAsync();
+					return true;
 				}
 			}
 			catch (Exception e)
@@ -211,17 +200,13 @@ namespace Particle
 
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
-				{
-					var response = await client.PutAsync(
-						DEVICE_URI_ENDPOINT + Id + "?access_token=" + ParticleCloud.AccessToken.Token,
-						requestContent);
-					var particleArgs = DeserializeObject<ParticleFlashResponse>(await response.Content.ReadAsStringAsync());
+				var response = await ParticleCloud.client.PutAsync(
+					DEVICE_URI_ENDPOINT + Id + "?access_token=" + ParticleCloud.AccessToken.Token,
+					requestContent);
+				var particleArgs = DeserializeObject<ParticleFlashResponse>(await response.Content.ReadAsStringAsync());
 
-					if (particleArgs.Status == "Update started")
-						return true;
-				}
-
+				if (particleArgs.Status == "Update started")
+					return true;
 			}
 			catch (Exception e)
 			{
@@ -238,16 +223,14 @@ namespace Particle
 		{
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
-				{
-					var response = await client.DeleteAsync(
-						DEVICE_URI_ENDPOINT + Id + "?access_token=" + ParticleCloud.AccessToken.Token
-					);
-					var particleArgs = DeserializeObject<ParticleGeneralResponse>(await response.Content.ReadAsStringAsync());
+				var response = await ParticleCloud.client.DeleteAsync(
+					DEVICE_URI_ENDPOINT + Id + "?access_token=" + ParticleCloud.AccessToken.Token
+				);
+				var particleArgs = DeserializeObject<ParticleGeneralResponse>(await response.Content.ReadAsStringAsync());
 
-					if (particleArgs.Ok)
-						return true;
-				}
+				if (particleArgs.Ok)
+					return true;
+
 			}
 			catch (Exception e)
 			{
@@ -272,18 +255,16 @@ namespace Particle
 
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
-				{
-					var response = await client.PutAsync(
-						DEVICE_URI_ENDPOINT + Id + "?access_token=" + ParticleCloud.AccessToken.Token,
-						content);
-					response.EnsureSuccessStatusCode();
+				var response = await ParticleCloud.client.PutAsync(
+					DEVICE_URI_ENDPOINT + Id + "?access_token=" + ParticleCloud.AccessToken.Token,
+					content);
+				response.EnsureSuccessStatusCode();
 
-					var particleArgs = DeserializeObject<ParticleFlashResponse>(await response.Content.ReadAsStringAsync());
+				var particleArgs = DeserializeObject<ParticleFlashResponse>(await response.Content.ReadAsStringAsync());
 
-					if (particleArgs.Status == "Update started")
-						return true;
-				}
+				if (particleArgs.Status == "Update started")
+					return true;
+
 
 			}
 			catch (Exception e)

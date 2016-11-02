@@ -103,13 +103,9 @@
     </GetAssemblyIdentity>
 
     <!-- insert the version number into the nuspec files -->
-    <XmlUpdate
-      Namespace="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
-      XmlFileName="$(PackageDir)ParticleSDK.nuspec"
-      XPath="/package/metadata/version"
-      Value="%(AsmInfo.Version)" />
+    <XmlUpdate Namespace="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd" XmlFileName="$(PackageDir)ParticleSDK.nuspec" XPath="/package/metadata/version" Value="%(AsmInfo.Version)" />
     
-    <MakeDir  Directories="$(PackageDir)%(AsmInfo.Version)" />
+    <MakeDir Directories="$(PackageDir)%(AsmInfo.Version)" />
 
     <Exec WorkingDirectory="$(PackageDir)" Command="nuget pack ParticleSDK.nuspec -Prop Configuration=Release -Symbols -OutputDirectory $(PackageDir)%(AsmInfo.Version) "></Exec>
   </Target>

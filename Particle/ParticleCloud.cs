@@ -2,15 +2,14 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using static System.String;
-using static System.Diagnostics.Debug;
-using System.Threading;
-using ModernHttpClient;
-using static Newtonsoft.Json.JsonConvert;
 
 using Particle.Models;
 using Particle.Helpers;
-using System.Threading;
+
+using static System.String;
+using static System.Diagnostics.Debug;
+
+using static Newtonsoft.Json.JsonConvert;
 
 namespace Particle
 {
@@ -22,6 +21,19 @@ namespace Particle
 		readonly string TOKEN_URI_ENDPOINT = "https://api.particle.io/oauth/token/";
 		readonly string USER_URI_ENDPOINT = "https://api.particle.io/v1/users/";
 		readonly string DEVICE_URI_ENDPOINT = "https://api.spark.io/v1/devices/";
+
+		#endregion
+
+		#region Public Properties
+
+		public static ParticleCloud SharedInstance { get; internal set; } = new ParticleCloud();
+		public static HttpClient client = new HttpClient();
+		public string LoggedInUsername { get; internal set; }
+		public bool IsLoggedIn { get; internal set; }
+		public static ParticleAccessToken AccessToken { get; set; }
+		public string OAuthClientId { get; internal set; } = "particle";
+		public string OAuthClientSecret { get; internal set; } = "particle";
+		public Dictionary<Guid, EventSource> SubscibedEvents { get; internal set; } = new Dictionary<Guid, EventSource>();
 
 		#endregion
 
@@ -39,18 +51,6 @@ namespace Particle
 			OAuthClientId = "particle";
 			OAuthClientSecret = "particle";
 		}
-
-		#endregion
-
-		#region Properties
-
-		public static ParticleCloud SharedInstance { get; internal set; } = new ParticleCloud();
-		public string LoggedInUsername { get; internal set; }
-		public bool IsLoggedIn { get; internal set; }
-		public static ParticleAccessToken AccessToken { get; set; }
-		public string OAuthClientId { get; internal set; } = "particle";
-		public string OAuthClientSecret { get; internal set; } = "particle";
-		public Dictionary<Guid, EventSource> SubscibedEvents { get; internal set; } = new Dictionary<Guid, EventSource>();
 
 		#endregion
 
@@ -88,17 +88,14 @@ namespace Particle
 
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
-				{
-					var response = await client.PostAsync(CLIENT_URI_ENDPOINT, requestContent);
-					var particleResponse = DeserializeObject<ParticleOAuthResponse>(await response.Content.ReadAsStringAsync());
+				var response = await client.PostAsync(CLIENT_URI_ENDPOINT, requestContent);
+				var particleResponse = DeserializeObject<ParticleOAuthResponse>(await response.Content.ReadAsStringAsync());
 
-					if (particleResponse.Success)
-					{
-						OAuthClientId = particleResponse.ClientDetails.Id;
-						OAuthClientSecret = particleResponse.ClientDetails.Secret;
-						return true;
-					}
+				if (particleResponse.Success)
+				{
+					OAuthClientId = particleResponse.ClientDetails.Id;
+					OAuthClientSecret = particleResponse.ClientDetails.Secret;
+					return true;
 				}
 			}
 			catch (Exception e)
@@ -125,20 +122,16 @@ namespace Particle
 
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
+				var response = await client.PostAsync(TOKEN_URI_ENDPOINT, requestContent);
+				var particleResponse = DeserializeObject<ParticleLoginResponse>(await response.Content.ReadAsStringAsync());
+
+				if (particleResponse.AccessToken != null || !IsNullOrEmpty(particleResponse.AccessToken))
 				{
-					var response = await client.PostAsync(TOKEN_URI_ENDPOINT, requestContent);
-					var particleResponse = DeserializeObject<ParticleLoginResponse>(await response.Content.ReadAsStringAsync());
-
-					if (particleResponse.AccessToken != null || !IsNullOrEmpty(particleResponse.AccessToken))
-					{
-						AccessToken = new ParticleAccessToken(particleResponse);
-						LoggedInUsername = username;
-						IsLoggedIn = true;
-						return true;
-					}
+					AccessToken = new ParticleAccessToken(particleResponse);
+					LoggedInUsername = username;
+					IsLoggedIn = true;
+					return true;
 				}
-
 			}
 			catch (Exception e)
 			{
@@ -172,14 +165,11 @@ namespace Particle
 
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
-				{
-					var response = await client.PostAsync(USER_URI_ENDPOINT, requestContent);
-					particleResponse = DeserializeObject<ParticleGeneralResponse>(await response.Content.ReadAsStringAsync());
+				var response = await client.PostAsync(USER_URI_ENDPOINT, requestContent);
+				particleResponse = DeserializeObject<ParticleGeneralResponse>(await response.Content.ReadAsStringAsync());
 
-					if (particleResponse.Ok)
-						return "Success";
-				}
+				if (particleResponse.Ok)
+					return "Success";
 			}
 			catch (Exception e)
 			{
@@ -212,14 +202,11 @@ namespace Particle
 
 		//	try
 		//	{
-		//		using (var client = new HttpClient(new NativeMessageHandler()))
-		//		{
-		//			HttpResponseMessage response = await client.PostAsync(method, new FormUrlEncodedContent(new KeyValuePair<string, string>("username", email)));
-		//			string str = await response.Content.ReadAsStringAsync();
+		//		HttpResponseMessage response = await client.PostAsync(method, new FormUrlEncodedContent(new KeyValuePair<string, string>("username", email)));
+		//		string str = await response.Content.ReadAsStringAsync();
 
-		//			if (str.Contains("\"ok\": true"))
-		//				return true;
-		//		}
+		//		if (str.Contains("\"ok\": true"))
+		//			return true;
 		//	}
 		//	catch (HttpRequestException e)
 		//	{
@@ -236,22 +223,19 @@ namespace Particle
 
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
-				{
-					var response = await client.GetAsync(DEVICE_URI_ENDPOINT + "?access_token=" + AccessToken.Token);
-					var responseText = await response.Content.ReadAsStringAsync();
+				var response = await client.GetAsync(DEVICE_URI_ENDPOINT + "?access_token=" + AccessToken.Token);
+				var responseText = await response.Content.ReadAsStringAsync();
 
-					if (responseText.Contains("error"))
-						return null;
+				if (responseText.Contains("error"))
+					return null;
 
-					var particleArgs = DeserializeObject<List<ParticleDeviceObject>>(responseText);
-					var particleDevices = new List<ParticleDevice>();
+				var particleArgs = DeserializeObject<List<ParticleDeviceObject>>(responseText);
+				var particleDevices = new List<ParticleDevice>();
 
-					foreach (var device in particleArgs)
-						particleDevices.Add(new ParticleDevice(device));
+				foreach (var device in particleArgs)
+					particleDevices.Add(new ParticleDevice(device));
 
-					return particleDevices;
-				}
+				return particleDevices;
 
 			}
 			catch (Exception e)
@@ -270,15 +254,12 @@ namespace Particle
 		{
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
-				{
-					var response = await client.GetAsync(
-						DEVICE_URI_ENDPOINT + deviceId + "/?access_token=" + AccessToken.Token);
-					var particleArgs = DeserializeObject<ParticleDeviceObject>(await response.Content.ReadAsStringAsync());
+				var response = await client.GetAsync(
+					DEVICE_URI_ENDPOINT + deviceId + "/?access_token=" + AccessToken.Token);
+				var particleArgs = DeserializeObject<ParticleDeviceObject>(await response.Content.ReadAsStringAsync());
 
-					if (particleArgs != null)
-						return new ParticleDevice(particleArgs);
-				}
+				if (particleArgs != null)
+					return new ParticleDevice(particleArgs);
 			}
 			catch (Exception e)
 			{
@@ -308,21 +289,18 @@ namespace Particle
 
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
+				var response = await client.PostAsync(
+					TOKEN_URI_ENDPOINT + "?refresh_token=" + AccessToken.RefreshToken,
+					requestContent
+				);
+
+				var particleResponse = DeserializeObject<ParticleLoginResponse>(await response.Content.ReadAsStringAsync());
+
+				if (particleResponse.AccessToken != null || !IsNullOrEmpty(particleResponse.AccessToken))
 				{
-					var response = await client.PostAsync(
-						TOKEN_URI_ENDPOINT + "?refresh_token=" + AccessToken.RefreshToken,
-						requestContent
-					);
-
-					var particleResponse = DeserializeObject<ParticleLoginResponse>(await response.Content.ReadAsStringAsync());
-
-					if (particleResponse.AccessToken != null || !IsNullOrEmpty(particleResponse.AccessToken))
-					{
-						AccessToken = new ParticleAccessToken(particleResponse);
-						IsLoggedIn = true;
-						return AccessToken;
-					}
+					AccessToken = new ParticleAccessToken(particleResponse);
+					IsLoggedIn = true;
+					return AccessToken;
 				}
 			}
 			catch (Exception e)
@@ -343,17 +321,14 @@ namespace Particle
 
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
-				{
-					var response = await client.PostAsync(
-						DEVICE_URI_ENDPOINT + "?access_token=" + AccessToken.Token,
-						requestContent);
+				var response = await client.PostAsync(
+					DEVICE_URI_ENDPOINT + "?access_token=" + AccessToken.Token,
+					requestContent);
 
-					var particleResponse = DeserializeObject<ParticleFunctionResponse>(await response.Content.ReadAsStringAsync());
+				var particleResponse = DeserializeObject<ParticleFunctionResponse>(await response.Content.ReadAsStringAsync());
 
-					if (particleResponse.Connected)
-						return true;
-				}
+				if (particleResponse.Connected)
+					return true;
 			}
 			catch (Exception e)
 			{
@@ -445,19 +420,16 @@ namespace Particle
 
 			try
 			{
-				using (var client = new HttpClient(new NativeMessageHandler()))
-				{
-					var response = await client.PostAsync(
-						"https://api.particle.io/v1/devices/events" + "?access_token=" + AccessToken.Token,
-						new FormUrlEncodedContent(requestContent)
-					);
-					var particleResponse = await response.Content.ReadAsStringAsync();
+				var response = await client.PostAsync(
+					"https://api.particle.io/v1/devices/events" + "?access_token=" + AccessToken.Token,
+					new FormUrlEncodedContent(requestContent)
+				);
+				var particleResponse = await response.Content.ReadAsStringAsync();
 
-					if (particleResponse.Contains("\"ok\": true"))
-						return "Ok";
+				if (particleResponse.Contains("\"ok\": true"))
+					return "Ok";
 
-					return "Error";
-				}
+				return "Error";
 			}
 			catch (Exception e)
 			{
