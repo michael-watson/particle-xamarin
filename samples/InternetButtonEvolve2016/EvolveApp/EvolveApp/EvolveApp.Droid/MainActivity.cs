@@ -31,12 +31,19 @@ namespace EvolveApp.Droid
 			base.OnCreate(bundle);
 
 			global::Xamarin.Forms.Forms.Init(this, bundle);
-			DependencyService.Register<ToastNotification>(); // Register your dependency
-			DependencyService.Register<ITextStyle, TextStyle>();
+			DependencyService.Register<ToastNotificatorImplementation>(); // Register your dependency
+            DependencyService.Register<ITextStyle, TextStyle>();
 
-			ToastNotification.Init(this, new PlatformOptions { Style = NotificationStyle.Notifications });
+            var style = (Styles.Droid.Text.TextStyle)Xamarin.Forms.DependencyService.Get<ITextStyle> ();
+			style.AddFont ("SegoeUI-SemiBold", "SegoeUIBold.ttf");
+            style.AddFont ("SegoeUI-Light", "SegoeUILight.ttf");
+			style.AddFont ("SegoeUI", "SegoeUIRegular.ttf");
+
+            ToastNotificatorImplementation.Init(this);
 
 			LoadApplication(new App());
-		}
+
+            //Akavache.BlobCache.ApplicationName = "EvolveApp";
+        }
 	}
 }

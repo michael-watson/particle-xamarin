@@ -208,14 +208,7 @@ namespace EvolveApp.ViewModels
 						Device.BeginInvokeOnMainThread(async () =>
 						{
 							var notificator = DependencyService.Get<IToastNotificator>();
-
-							var options = new NotificationOptions()
-							{
-								Title = $"{InternetButton.Name} Says:",
-								Description = "You got that one right...."
-							};
-
-							var notificationResult = await notificator.Notify(options);
+							await notificator.Notify(ToastNotificationType.Success, $"{InternetButton.Name} Says:", "You got that one right....", TimeSpan.FromSeconds(3));
 						});
 					}
 					else if (result == "-1")
@@ -223,14 +216,8 @@ namespace EvolveApp.ViewModels
 						Device.BeginInvokeOnMainThread(async () =>
 						{
 							var notificator = DependencyService.Get<IToastNotificator>();
-							var options = new NotificationOptions()
-							{
-								Title = $"{InternetButton.Name} Says:",
-								Description = "Don't interrupt my masterpiece!!!"
-							};
-
-							var notificationResult = await notificator.Notify(options);
-						});
+                            await notificator.Notify(ToastNotificationType.Warning, $"{InternetButton.Name} Says:", "Don't interrupt my masterpiece!!!", TimeSpan.FromSeconds(3));
+                        });
 					}
 				}
 
@@ -374,14 +361,8 @@ namespace EvolveApp.ViewModels
 				Device.BeginInvokeOnMainThread(async () =>
 				{
 					var notificator = DependencyService.Get<IToastNotificator>();
-					var options = new NotificationOptions()
-					{
-						Title = $"{InternetButton.Name} Says:",
-						Description = "Better bring your A game!!"
-					};
-
-					var notificationResult = await notificator.Notify(options);
-				});
+                    await notificator.Notify(ToastNotificationType.Warning, $"{InternetButton.Name} Says:", "Better bring your A game!!", TimeSpan.FromSeconds(3));
+                });
 			}
 
 			var success = await InternetButton.CallFunctionAsync("startSimon");
@@ -393,14 +374,8 @@ namespace EvolveApp.ViewModels
 					Device.BeginInvokeOnMainThread(async () =>
 					{
 						var notificator = DependencyService.Get<IToastNotificator>();
-						var options = new NotificationOptions()
-						{
-							Title = $"{InternetButton.Name} Died:",
-							Description = "But I'll come back to life!!"
-						};
-
-						var notificationResult = await notificator.Notify(options);
-					});
+                        await notificator.Notify(ToastNotificationType.Warning, $"{InternetButton.Name} Died:", "But I'll come back to life!!", TimeSpan.FromSeconds(3));
+                    });
 				}
 			}
 			gameRunning = true;
@@ -427,14 +402,8 @@ namespace EvolveApp.ViewModels
 				Device.BeginInvokeOnMainThread(async () =>
 				{
 					var notificator = DependencyService.Get<IToastNotificator>();
-					var options = new NotificationOptions()
-					{
-						Title = $"Winner",
-						Description = "You beat Simon!!"
-					};
-
-					var notificationResult = await notificator.Notify(options);
-				});
+                    await notificator.Notify(ToastNotificationType.Warning, $"Winner", "You beat Simon!!", TimeSpan.FromSeconds(3));
+                });
 			}
 
 			OnPropertyChanged("DetailText");
@@ -450,14 +419,8 @@ namespace EvolveApp.ViewModels
 				Device.BeginInvokeOnMainThread(async () =>
 				{
 					var notificator = DependencyService.Get<IToastNotificator>();
-					var options = new NotificationOptions()
-					{
-						Title = $"{InternetButton.Name} Says: ",
-						Description = "MWHUAHAHAHA I WIN!!"
-					};
-
-					var notificationResult = await notificator.Notify(options);
-				});
+                    await notificator.Notify(ToastNotificationType.Warning, $"{InternetButton.Name} Says: ", "MWHUAHAHAHA I WIN!!", TimeSpan.FromSeconds(3));
+                });
 			}
 			else
 			{

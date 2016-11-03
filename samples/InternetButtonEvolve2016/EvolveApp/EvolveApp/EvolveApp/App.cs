@@ -5,6 +5,8 @@ using System.IO;
 using Xamarin.Forms;
 using EvolveApp.Pages;
 using Styles.Core.Text;
+using Akavache;
+using System.Reactive.Linq;
 
 namespace EvolveApp
 {
@@ -14,7 +16,7 @@ namespace EvolveApp
 
 		public App()
 		{
-			var navPage = new NavigationPage(new MyDevicesPage());
+            var navPage = new NavigationPage(new MyDevicesPage());
 			var style = DependencyService.Get<ITextStyle>();
 
 			var assembly = typeof(App).GetTypeInfo().Assembly;
@@ -37,11 +39,11 @@ namespace EvolveApp
 
 		protected override void OnStart()
 		{
-			// Handle when your app starts
-			//ParticleCloud.AccessToken = new ParticleAccessToken(Token, RefreshToken, Expiration);
-		}
+            // Handle when your app starts
+            //ParticleCloud.AccessToken = new ParticleAccessToken(Token, RefreshToken, Expiration);
+        }
 
-		protected override void OnSleep()
+        protected override void OnSleep()
 		{
 			// Handle when your app sleeps
 		}
