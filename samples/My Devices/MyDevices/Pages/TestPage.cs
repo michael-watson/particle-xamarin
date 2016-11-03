@@ -53,7 +53,7 @@ namespace MyDevices.Pages
 			base.OnAppearing();
 
 			await ParticleCloud.SharedInstance.CreateOAuthClientAsync(App.Token, "xamarin");
-			var response = await ParticleCloud.SharedInstance.LoginWithUserAsync("michael.watson@xamarin.com", "Da2188MW");
+			var response = await ParticleCloud.SharedInstance.LoginWithUserAsync("michael.watson@xamarin.com", "");
 
 			//await StartPublish().ConfigureAwait(false);
 		}

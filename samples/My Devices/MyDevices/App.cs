@@ -28,8 +28,6 @@ namespace MyDevices
 
 		public App()
 		{
-			BlobCache.ApplicationName = "ParticleXamarin";
-
 			var page = new LoginPage { LogoFileImageSource = "particle.png" };
 			NavigationPage.SetHasNavigationBar(page, false);
 			var navPage = new NavigationPage(page)
