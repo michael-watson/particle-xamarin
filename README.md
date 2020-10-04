@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://xamarin.com/content/images/pages/branding/assets/xamarin-logo.png" alt="Xamarin" title="Xamarin" width="500">
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Xamarin-logo.svg/1200px-Xamarin-logo.svg.png" alt="Xamarin" title="Xamarin" width="500">
 </p>
 <p align="center" >
 <img src="http://oi60.tinypic.com/116jd51.jpg" alt="Particle" title="Particle">
